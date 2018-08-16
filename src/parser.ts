@@ -1,3 +1,4 @@
+import { readFileSync, writeFileSync } from "fs";
 import * as RequestAPI from "request-promise-native";
 import { Day } from "./day";
 import { Database } from "./database";
@@ -12,10 +13,14 @@ export class Parser {
     currentMatchSeqNum : number;
     steamAPIKey: string;
 
-    constructor(steamAPIKey: string, startMatchSeqNum: number) {
+    constructor() {
         this.database = new Database();
-        this.currentMatchSeqNum = startMatchSeqNum;
-        this.steamAPIKey = steamAPIKey;
+        this.steamAPIKey = readFileSync("./steamapikey.txt", "utf8").trim();
+        this.currentMatchSeqNum = parseInt(readFileSync("./matchseqnum.txt", "utf8"));
+    }
+
+    saveMatchSeqNum(): void {
+        writeFileSync("./matchseqnum.txt", "" + this.currentMatchSeqNum);
     }
 
     isValid(match: any): boolean {
@@ -117,6 +122,46 @@ export class Parser {
         }
     }
 
+    parseSynergies(match: any, dataPackage: DataPackage) {
+        for (let teamIdx = 0; teamIdx < 2; ++teamIdx) {
+            let won = match.radiant_win == (teamIdx === 0);
+            for (let playerIdx1 = 0; playerIdx1 < 5; ++playerIdx1) {
+                let player1 = match.players[teamIdx * 5 + playerIdx1];
+                let hero1 = this.database.heroes[player1.hero_id];
+                let heroData = dataPackage.data[hero1.name];
+                for (let playerIdx2 = 0; playerIdx2 < 5; ++playerIdx2) {
+                    if (playerIdx1 != playerIdx2) {
+                        let player2 = match.players[teamIdx * 5 + playerIdx2];
+                        let hero2 = this.database.heroes[player2.hero_id];
+                        heroData.gamesPlayedWith[hero2.name]++;
+                        if (won) {
+                            heroData.gamesWonWith[hero2.name]++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    parseMatchUps(match: any, dataPackage: DataPackage) {
+        for (let teamIdx = 0; teamIdx < 2; ++teamIdx) {
+            let won = match.radiant_win == (teamIdx === 0);
+            for (let playerIdx1 = 0; playerIdx1 < 5; ++playerIdx1) {
+                let player1 = match.players[teamIdx * 5 + playerIdx1];
+                let hero1 = this.database.heroes[player1.hero_id];
+                let heroData = dataPackage.data[hero1.name];
+                for (let playerIdx2 = 0; playerIdx2 < 5; ++playerIdx2) {
+                    let player2 = match.players[(1 - teamIdx) * 5 + playerIdx2];
+                    let hero2 = this.database.heroes[player2.hero_id];
+                    heroData.gamesPlayedAgainst[hero2.name]++;
+                    if (won) {
+                        heroData.gamesWonAgainst[hero2.name]++;
+                    }
+                }
+            }
+        }
+    }
+
     parseMatch(match: any): Day {
         let day = new Day(match.start_time);
         let dataPackage = this.database.getPackage(day);
@@ -125,6 +170,8 @@ export class Parser {
         this.parseWinRate(match, dataPackage);
         this.parseFarmPriorities(match, dataPackage);
         this.parseXPPriorities(match, dataPackage);
+        this.parseSynergies(match, dataPackage);
+        this.parseMatchUps(match, dataPackage);
 
         return day;
     }
@@ -147,11 +194,25 @@ export class Parser {
         });
 
         this.database.saveToDisk();
+        this.saveMatchSeqNum();
     }
 
     requestURI(uri: string, dataSink: (data: any) => void) : void {
-        RequestAPI.get(uri, {}, (error: any, response: any, body: any) => {
-            dataSink(JSON.parse(body));
+        RequestAPI.get(uri, {}, () => {
+        }).then((value: any) => {
+            let statusCode = 200;
+            switch(statusCode) {
+                case 200: // ok
+                    dataSink(JSON.parse(value));
+                    break;
+                case 503:
+                    console.log("API unavailable");
+                    break;
+                default:
+                    console.log("unhandled status code: " + statusCode);
+            }
+        }, (reason: any) => {
+            console.log("REJECTED: " + reason);
         });
     }
 

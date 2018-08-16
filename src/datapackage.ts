@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, mkdir } from "fs";
 import { Day } from "./day";
 import { Hero } from "./hero";
 
@@ -37,13 +37,13 @@ export class HeroData {
         this.gamesWonAsFarmPriority = {};
         this.gamesPlayedAsXPPriority = {};
         this.gamesWonAsXPPriority = {};
-        // for (let heroId in heroes) {
-        //     let heroName = heroes[heroId].name;
-        //     this.gamesPlayedWith[heroName] = 0;
-        //     this.gamesWonWith[heroName] = 0;
-        //     this.gamesPlayedAgainst[heroName] = 0;
-        //     this.gamesWonAgainst[heroName] = 0;
-        // }
+        for (let heroId in heroes) {
+            let heroName = heroes[heroId].name;
+            this.gamesPlayedWith[heroName] = 0;
+            this.gamesWonWith[heroName] = 0;
+            this.gamesPlayedAgainst[heroName] = 0;
+            this.gamesWonAgainst[heroName] = 0;
+        }
         for (let priority = 0; priority < 5; ++priority) {
             this.gamesPlayedAsFarmPriority[priority] = 0;
             this.gamesWonAsFarmPriority[priority] = 0;
@@ -66,10 +66,26 @@ export class DataPackage {
             let heroName = heroes[heroId].name;
             this.data[heroName] = new HeroData(heroes);
         }
+        this.loadFromFile();
+    }
+
+    loadFromFile(): boolean {
+        let directory = "data";
+        if (!existsSync(directory)) {
+            mkdirSync(directory);
+        }
+
+        let filename = directory + "/" + this.day.name() + ".json";
+        if (existsSync(filename)) {
+            let buffer = readFileSync(filename, 'utf8');
+            this.data = JSON.parse(buffer);
+            return true;
+        }
+        return false;
     }
 
     writeToFile(): void {
-        let filename = this.day.name() + ".json";
+        let filename = "data/" + this.day.name() + ".json";
         writeFileSync(filename, JSON.stringify(this.data, null, 2));
     }
 }
