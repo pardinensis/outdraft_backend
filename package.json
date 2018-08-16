@@ -1,0 +1,18 @@
+{
+  "name": "outdraft_backend",
+  "version": "0.0.1",
+  "main": "built/backend.js",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@types/node": "^10.7.1",
+    "@types/request": "^2.47.1",
+    "@types/request-promise": "^4.1.42",
+    "@types/request-promise-native": "^1.0.15",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pardinensis/outdraft_backend"
+  }
+}
