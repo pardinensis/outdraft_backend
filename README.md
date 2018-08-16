@@ -1,9 +1,8 @@
-install:
-npm install --save @types/node
-npm install --save @types/request-promise-native
+=== install ===
+npm install && tsc
 
-compile:
-tsc
+create a file named "steamapikey.txt" in this directory containing your Steam API key
 
-run:
+
+=== run ===
 node built/backend.js
