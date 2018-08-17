@@ -106,7 +106,7 @@ export class Parser {
             for (let playerIdx = 0; playerIdx < 5; ++playerIdx) {
                 let player = match.players[teamIdx * 5 + playerIdx];
                 let upgrades: any[] = player.ability_upgrades;
-                if (upgrades.length < levelYardstick) {
+                if (typeof upgrades === "undefined" || upgrades.length < levelYardstick) {
                     return; // not everyone got the desired level
                 }
                 let upgradeTime = upgrades[levelYardstick - 1].time;
