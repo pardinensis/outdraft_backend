@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, mkdir } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { Day } from "./day";
 import { Hero } from "./hero";
 

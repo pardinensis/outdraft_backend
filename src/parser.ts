@@ -20,7 +20,12 @@ export class Parser {
     }
 
     saveMatchSeqNum(): void {
-        writeFileSync("./matchseqnum.txt", "" + this.currentMatchSeqNum);
+        try {
+            writeFileSync("./matchseqnum.txt", "" + this.currentMatchSeqNum);
+        }
+        catch (err) {
+            console.log("ERROR WRITING FILE: " + err);
+        }
     }
 
     isValid(match: any): boolean {
