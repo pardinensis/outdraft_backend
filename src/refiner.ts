@@ -38,7 +38,7 @@ export function refine(database: Database): void {
             let totalWinRate = heroData.totalGamesWon / heroData.totalGamesPlayed;
 
             // farm priority
-            for (let priority = 0; priority < 4; ++priority) {
+            for (let priority = 0; priority < 5; ++priority) {
                 let nSamples = heroData.gamesPlayedAsFarmPriority[priority];
                 if (nSamples > 0) {
                     let measuredWinRate = heroData.gamesWonAsFarmPriority[priority] / nSamples;
@@ -49,7 +49,7 @@ export function refine(database: Database): void {
             }
 
             // xp priority
-            for (let priority = 0; priority < 4; ++priority) {
+            for (let priority = 0; priority < 5; ++priority) {
                 let nSamples = heroData.gamesPlayedAsXPPriority[priority];
                 if (nSamples > 0) {
                     let measuredWinRate = heroData.gamesWonAsXPPriority[priority] / nSamples;
