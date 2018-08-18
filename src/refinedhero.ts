@@ -1,6 +1,7 @@
 export class RefinedHero {
     id: number;
     name: string;
+    internalName: string;
     attribute: string;
 
     rankedPickRates: number[];

@@ -11,6 +11,7 @@ export function refine(database: Database): void {
         let refinedHero = new RefinedHero();
         refinedHero.id = hero.id;
         refinedHero.name = hero.name;
+        refinedHero.internalName = hero.name.toLowerCase().replace(" ", "_");
         refinedHero.attribute = hero.attribute;
         refinedHeroes[refinedHero.name] = refinedHero;
     }
@@ -60,14 +61,14 @@ export function refine(database: Database): void {
             }
         }
     };
-
-    for (let heroName in refinedHeroes) {
-        let directory = "refined";
-        if (!existsSync(directory)) {
-            mkdirSync(directory);
-        }
-        let refinedHero = refinedHeroes[heroName];
-        let filename = directory + "/" + refinedHero.name + ".json";
-        writeFileSync(filename, JSON.stringify(refinedHero, null, 2));
+    
+    let directory = "refined";
+    if (!existsSync(directory)) {
+        mkdirSync(directory);
     }
+    let heroList: RefinedHero[] = [];
+    for (let heroName in refinedHeroes) {   
+        heroList.push(refinedHeroes[heroName]);
+    }
+    writeFileSync(directory + "/heroes.json", JSON.stringify(heroList, null, 2));
 }
