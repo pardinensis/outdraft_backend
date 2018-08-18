@@ -13,9 +13,8 @@ function startPeriodicTask(name: string, task: ()=>void, seconds: number) {
 }
 
 
-// let parser = new Parser();
-// startPeriodicTask("retrieve matches", parser.requestMatches.bind(parser), 10);
+let parser = new Parser();
+startPeriodicTask("retrieve matches", parser.requestMatches.bind(parser), 10);
 
 let database = new Database();
-// startPeriodicTask("refine data", refine.bind(null, database), 3600);
-refine(database);
+startPeriodicTask("refine data", refine.bind(null, database), 3600);
