@@ -1,8 +1,8 @@
 export class Day {
     date: Date;
 
-    constructor(unixTimestamp: number) {
-        this.date = new Date(unixTimestamp * 1000);
+    constructor(date: Date) {
+        this.date = date;
         this.date.setHours(0);
         this.date.setMinutes(0);
         this.date.setSeconds(0);
@@ -17,5 +17,12 @@ export class Day {
 
     name(): string {
         return this.date.getUTCFullYear() + "-" + (this.date.getUTCMonth() + 1) + "-" + (this.date.getUTCDate() + 1);
+    }
+
+    daysPast(): number {
+        let today = new Date();
+        let timeDiffMillis = today.getTime() - this.date.getTime();
+        let timeDiffDays = Math.floor(timeDiffMillis / (1000 * 3600 * 24));
+        return timeDiffDays;
     }
 }

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { Day } from "./day";
 import { Hero } from "./hero";
 
@@ -87,5 +87,23 @@ export class DataPackage {
     writeToFile(): void {
         let filename = "data/" + this.day.name() + ".json";
         writeFileSync(filename, JSON.stringify(this.data, null, 2));
+    }
+
+    static loadAll(heroes: {[id: number]: Hero}): DataPackage[] {
+        let directory = "data";
+        if (!existsSync(directory)) {
+            return [];
+        }
+
+        let fileNames = readdirSync(directory);
+        let dataPackages: DataPackage[] = [];
+        fileNames.forEach((filename) => {
+            let dayName = filename.substr(0, filename.indexOf(".json"));
+            if (dayName.length > 0) {
+                dataPackages.push(new DataPackage(new Day(new Date(dayName)), heroes));
+            }
+        });
+
+        return dataPackages;
     }
 }

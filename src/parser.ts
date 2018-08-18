@@ -168,7 +168,7 @@ export class Parser {
     }
 
     parseMatch(match: any): Day {
-        let day = new Day(match.start_time);
+        let day = new Day(new Date(match.start_time * 1000));
         let dataPackage = this.database.getPackage(day);
         dataPackage.dirty = true;
 
