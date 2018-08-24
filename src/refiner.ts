@@ -11,7 +11,7 @@ export function refine(database: Database): void {
         let refinedHero = new RefinedHero();
         refinedHero.id = hero.id;
         refinedHero.name = hero.name;
-        refinedHero.internalName = hero.name.toLowerCase().replace(" ", "_");
+        refinedHero.internalName = hero.name.toLowerCase().split(" ").join("_");
         refinedHero.attribute = hero.attribute;
         refinedHeroes[refinedHero.name] = refinedHero;
     }
