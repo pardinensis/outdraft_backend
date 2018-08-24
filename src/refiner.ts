@@ -74,6 +74,21 @@ export function refine(database: Database): void {
                     refinedHero.synergyWinRates[allyHero.id] += weightFactor * synergyWinRate;
                 }
             }
+
+            // matchup
+            for (let enemyHeroId in database.heroes) {
+                let enemyHero = database.heroes[enemyHeroId];
+                let nSamples = heroData.gamesPlayedAgainst[enemyHero.name];
+                if (nSamples > 0) {
+                    let enemyHeroPackage = dataPackage.data[enemyHero.name];
+                    let enemyWinRate = enemyHeroPackage.totalGamesWon / enemyHeroPackage.totalGamesPlayed;
+                    let expectedWinRate = Stochastics.combine(totalWinRate, 1 - enemyWinRate);
+                    let measuredWinRate = heroData.gamesWonAgainst[enemyHero.name] / nSamples;
+                    let matchupWinRate = Stochastics.split(measuredWinRate, expectedWinRate);
+                    refinedHero.matchUpSamples[enemyHero.id] += weightFactor * nSamples;
+                    refinedHero.matchUpWinRates[enemyHero.id] += weightFactor * matchupWinRate;
+                }
+            }
         }
     };
     
