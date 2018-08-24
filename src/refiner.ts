@@ -59,6 +59,21 @@ export function refine(database: Database): void {
                     refinedHero.xpPriorityWinRates[priority] += weightFactor * priorityWinRate;
                 }
             }
+
+            // synergy
+            for (let allyHeroId in database.heroes) {
+                let allyHero = database.heroes[allyHeroId];
+                let nSamples = heroData.gamesPlayedWith[allyHero.name];
+                if (nSamples > 0) {
+                    let allyHeroPackage = dataPackage.data[allyHero.name];
+                    let allyWinRate = allyHeroPackage.totalGamesWon / allyHeroPackage.totalGamesPlayed;
+                    let expectedWinRate = Stochastics.combine(totalWinRate, allyWinRate);
+                    let measuredWinRate = heroData.gamesWonWith[allyHero.name] / nSamples;
+                    let synergyWinRate = Stochastics.split(measuredWinRate, expectedWinRate);
+                    refinedHero.synergySamples[allyHero.id] += weightFactor * nSamples;
+                    refinedHero.synergyWinRates[allyHero.id] += weightFactor * synergyWinRate;
+                }
+            }
         }
     };
     
