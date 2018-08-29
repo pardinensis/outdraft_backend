@@ -218,16 +218,21 @@ export class Parser {
             console.log(data);
         }
         let matchArray: any[] = data.result.matches;
-        console.log(matchArray.length);
+        console.log("received " + matchArray.length + " matches");
+        let lastValidMatch: any = null;
         matchArray.forEach(match => {
             if (this.isValid(match)) {
                 this.parseMatch(match);
+                lastValidMatch = match;
             }
 
             if (match.match_seq_num !== undefined) {
                 this.currentMatchSeqNum = match.match_seq_num + 1;
             }
         });
+        if (lastValidMatch !== null) {
+            console.log(new Date(lastValidMatch.start_time * 1000));
+        }
 
         this.database.saveToDisk();
         this.saveMatchSeqNum();
