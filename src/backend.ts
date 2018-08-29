@@ -1,6 +1,7 @@
 import { Parser } from "./parser";
 import { Database } from "./database";
-import { refine } from "./refiner";
+import { Refiner } from "./refiner";
+import { Scraper } from "./scraper";
 
 function startPeriodicTask(name: string, task: ()=>void, seconds: number) {
     console.log("executing: " + name);
@@ -12,8 +13,13 @@ function startPeriodicTask(name: string, task: ()=>void, seconds: number) {
 }
 
 
-let parser = new Parser();
+let database = new Database();
+
+let parser = new Parser(database);
 startPeriodicTask("retrieve matches", parser.requestMatches.bind(parser), 10);
 
-let database = new Database();
-startPeriodicTask("refine data", refine.bind(null, database), 3600);
+let refiner = new Refiner(database);
+startPeriodicTask("refine data", refiner.refine.bind(refiner), 3600);
+
+// let scraper = new Scraper(database);
+// scraper.scrapeMeta();

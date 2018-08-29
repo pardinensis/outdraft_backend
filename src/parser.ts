@@ -13,8 +13,8 @@ export class Parser {
     currentMatchSeqNum : number;
     steamAPIKey: string;
 
-    constructor() {
-        this.database = new Database();
+    constructor(database: Database) {
+        this.database = database;
         this.steamAPIKey = readFileSync("./steamapikey.txt", "utf8").trim();
         this.currentMatchSeqNum = parseInt(readFileSync("./matchseqnum.txt", "utf8"));
     }
