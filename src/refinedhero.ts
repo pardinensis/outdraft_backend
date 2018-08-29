@@ -1,6 +1,6 @@
-export class RefinedHero {
-    static N_IDS: number = 122;
+import { Database } from "./database";
 
+export class RefinedHero {
     id: number;
     name: string;
     internalName: string;
@@ -18,24 +18,25 @@ export class RefinedHero {
     matchUpSamples: number[];
     matchUpWinRates: number[];
 
-    constructor() {
+    constructor(database: Database) {
         this.id = 0;
         this.name = "";
         this.internalName = "";
         this.attribute = "";
 
-        this.rankedPickRates = [0, 0, 0, 0, 0];
-        this.rankedWinRates = [0, 0, 0, 0, 0];
+        this.rankedPickRates = [0, 0, 0, 0, 0, 0, 0, 0];
+        this.rankedWinRates = [0, 0, 0, 0, 0, 0, 0, 0];
+
         this.farmPrioritySamples = [0, 0, 0, 0, 0];
         this.farmPriorityWinRates = [0, 0, 0, 0, 0];
         this.xpPrioritySamples = [0, 0, 0, 0, 0];
         this.xpPriorityWinRates = [0, 0, 0, 0, 0];
 
-        this.synergySamples = new Array<number>(RefinedHero.N_IDS);
-        this.synergyWinRates = new Array<number>(RefinedHero.N_IDS);
-        this.matchUpSamples = new Array<number>(RefinedHero.N_IDS);
-        this.matchUpWinRates = new Array<number>(RefinedHero.N_IDS);
-        for (let id = 0; id < RefinedHero.N_IDS; ++id) {
+        this.synergySamples = new Array<number>(database.num_ids);
+        this.synergyWinRates = new Array<number>(database.num_ids);
+        this.matchUpSamples = new Array<number>(database.num_ids);
+        this.matchUpWinRates = new Array<number>(database.num_ids);
+        for (let id = 0; id < database.num_ids; ++id) {
             this.synergySamples[id] = 0;
             this.synergyWinRates[id] = 0;
             this.matchUpSamples[id] = 0;

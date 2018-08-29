@@ -12,14 +12,17 @@ export class Refiner {
     }
 
     refine(): void {
+        this.database.loadHeroes();
         let refinedHeroes: {[name: string]: RefinedHero} = {};
         for (let heroId in this.database.heroes) {
             let hero = this.database.heroes[heroId];
-            let refinedHero = new RefinedHero();
+            let refinedHero = new RefinedHero(this.database);
             refinedHero.id = hero.id;
             refinedHero.name = hero.name;
             refinedHero.internalName = hero.name.toLowerCase().split(" ").join("_");
             refinedHero.attribute = hero.attribute;
+            refinedHero.rankedWinRates = hero.rankedWinRates;
+            refinedHero.rankedPickRates = hero.rankedPickRates;
             refinedHeroes[refinedHero.name] = refinedHero;
         }
 

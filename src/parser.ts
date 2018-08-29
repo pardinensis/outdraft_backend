@@ -3,20 +3,51 @@ import * as RequestAPI from "request-promise-native";
 import { Day } from "./day";
 import { Database } from "./database";
 import { DataPackage } from "./datapackage";
+import { Hero } from "./hero";
 
 
 export class Parser {
-    GET_HEROES: string = "https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v1/?";
+    GET_HEROES: string = "https://api.opendota.com/api/herostats?";
     GET_MATCHES: string = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistoryBySequenceNum/v1/?";
     
     database : Database;
     currentMatchSeqNum : number;
     steamAPIKey: string;
+    opendotaAPIKey: string;
 
     constructor(database: Database) {
         this.database = database;
         this.steamAPIKey = readFileSync("./steamapikey.txt", "utf8").trim();
+        this.opendotaAPIKey = readFileSync("./opendotaapikey.txt", "utf8").trim();
         this.currentMatchSeqNum = parseInt(readFileSync("./matchseqnum.txt", "utf8"));
+    }
+
+    parseHeroes(data: any): void {
+        let heroes: Hero[] = [];
+        data.forEach((heroData: any) => {
+            let hero = new Hero();
+            hero.id = heroData.id;
+            hero.name = heroData.localized_name;
+            hero.attribute = heroData.primary_attr;
+            hero.rankedWinRates = [];
+            hero.rankedPickRates = [];
+            for (let rank = 0; rank < 8; ++rank) {
+                let pick = heroData[(rank + 1) + "_pick"];
+                let win = heroData[(rank + 1) + "_win"];
+                if (rank > 0) {
+                    pick += heroData[(rank + 0) + "_pick"];
+                    win += heroData[(rank + 0) + "_win"];
+                }
+                if (rank < 7) {
+                    pick += heroData[(rank + 2) + "_pick"];
+                    win += heroData[(rank + 2) + "_win"];
+                }
+                hero.rankedWinRates[rank] = win / pick;
+                hero.rankedPickRates[rank] = pick;
+            }
+            heroes.push(hero);
+        });
+        writeFileSync("./basicHeroes.json", JSON.stringify(heroes, null, 2));
     }
 
     saveMatchSeqNum(): void {
@@ -227,9 +258,7 @@ export class Parser {
     }
 
     requestHeroes(): void {
-        let uri = this.GET_HEROES + "key=" + this.steamAPIKey;
-        this.requestURI(uri, data => {
-            data.result.heroes.forEach((h: any) => console.log(h));
-        });
+        let uri = this.GET_HEROES + "api_key=" + this.opendotaAPIKey;
+        this.requestURI(uri, this.parseHeroes.bind(this));
     }
 }
