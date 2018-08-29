@@ -26,27 +26,45 @@ export class Refiner {
             refinedHeroes[refinedHero.name] = refinedHero;
         }
 
-        let meanLifetimeDays = 30;
-        let sumOfFactors = 0;
-        let factors: number[] = [];
+        let meanLifetimeDays = 10;
+        let factors: {[heroName: string]: number[]} = {};
         let dataPackages = DataPackage.loadAll(this.database.heroes);
-        dataPackages.forEach((dataPackage) => {
+        for (let heroId in this.database.heroes) {
+            let heroName = this.database.heroes[heroId].name;
+            factors[heroName] = [];
+        }
+        for (let i = 0; i < dataPackages.length; ++i) {
+            let dataPackage = dataPackages[i];
             let daysPast = dataPackage.day.daysPast();
             let factor = Math.exp(-daysPast / meanLifetimeDays);
-            sumOfFactors += factor;
-            factors.push(factor);
-        });
-        for (let i = 0; i < factors.length; ++i) {
-            factors[i] /= sumOfFactors;
+
+            for (let heroName in dataPackage.data) {
+                let heroData = dataPackage.data[heroName];
+                let gamesPlayed = heroData.totalGamesPlayed;
+                let heroFactor = factor * gamesPlayed;
+                factors[heroName][i] = heroFactor;
+            }
         }
+        for (let heroId in this.database.heroes) {
+            let heroName = this.database.heroes[heroId].name;
+            let sumOfFactors = 0;
+            for (let i = 0; i < factors[heroName].length; ++i) {
+                let factor = factors[heroName][i] || 0;
+                sumOfFactors += factor;
+            }
+            for (let i = 0; i < factors[heroName].length; ++i) {
+                factors[heroName][i] /= sumOfFactors;
+            }
+        }
+
 
         for (let i = 0; i < dataPackages.length; ++i) {
             let dataPackage = dataPackages[i];
-            let weightFactor = factors[i];
             for (let heroName in dataPackage.data) {
                 let heroData = dataPackage.data[heroName];
                 let refinedHero = refinedHeroes[heroName];
                 let totalWinRate = heroData.totalGamesWon / heroData.totalGamesPlayed;
+                let weightFactor = factors[heroName][i];
 
                 // farm priority
                 for (let priority = 0; priority < 5; ++priority) {
@@ -56,6 +74,10 @@ export class Refiner {
                         let priorityWinRate = Stochastics.split(measuredWinRate, totalWinRate);
                         refinedHero.farmPrioritySamples[priority] += weightFactor * nSamples;
                         refinedHero.farmPriorityWinRates[priority] += weightFactor * priorityWinRate;
+                    }
+                    else {
+                        refinedHero.farmPrioritySamples[priority] = 0;
+                        refinedHero.farmPriorityWinRates[priority] = 0;
                     }
                 }
 
@@ -67,6 +89,10 @@ export class Refiner {
                         let priorityWinRate = Stochastics.split(measuredWinRate, totalWinRate);
                         refinedHero.xpPrioritySamples[priority] += weightFactor * nSamples;
                         refinedHero.xpPriorityWinRates[priority] += weightFactor * priorityWinRate;
+                    }
+                    else {
+                        refinedHero.xpPrioritySamples[priority] = 0;
+                        refinedHero.xpPriorityWinRates[priority] = 0;
                     }
                 }
 
@@ -83,6 +109,10 @@ export class Refiner {
                         refinedHero.synergySamples[allyHero.id] += weightFactor * nSamples;
                         refinedHero.synergyWinRates[allyHero.id] += weightFactor * synergyWinRate;
                     }
+                    else {
+                        refinedHero.synergySamples[allyHero.id] = 0;
+                        refinedHero.synergyWinRates[allyHero.id] = 0;
+                    }
                 }
 
                 // matchup
@@ -97,6 +127,10 @@ export class Refiner {
                         let matchupWinRate = Stochastics.split(measuredWinRate, expectedWinRate);
                         refinedHero.matchUpSamples[enemyHero.id] += weightFactor * nSamples;
                         refinedHero.matchUpWinRates[enemyHero.id] += weightFactor * matchupWinRate;
+                    }
+                    else {
+                        refinedHero.matchUpSamples[enemyHero.id] = 0;
+                        refinedHero.matchUpWinRates[enemyHero.id] = 0;
                     }
                 }
             }
