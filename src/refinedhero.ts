@@ -1,5 +1,5 @@
 export class RefinedHero {
-    static N_IDS: number = 121;
+    static N_IDS: number = 122;
 
     id: number;
     name: string;

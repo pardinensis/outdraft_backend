@@ -225,4 +225,11 @@ export class Parser {
         let uri = this.GET_MATCHES + "key=" + this.steamAPIKey + "&matches_requested=100&start_at_match_seq_num=" + this.currentMatchSeqNum + "L";
         this.requestURI(uri, this.parseMatches.bind(this));
     }
+
+    requestHeroes(): void {
+        let uri = this.GET_HEROES + "key=" + this.steamAPIKey;
+        this.requestURI(uri, data => {
+            data.result.heroes.forEach((h: any) => console.log(h));
+        });
+    }
 }
