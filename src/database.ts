@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { DataPackage } from "./datapackage";
 import { Day } from "./day";
 import { Hero } from "./hero";
@@ -16,17 +16,20 @@ export class Database {
     }
 
     loadHeroes(): void {
-        let buffer = readFileSync('./basicHeroes.json', 'utf8');
-        let heroList: Hero[] = JSON.parse(buffer);
-        let maxHeroId = 0;
-        this.heroes = {};
-        heroList.forEach(hero => {
-            if (hero.id > maxHeroId) {
-                maxHeroId = hero.id;
-            }
-            this.heroes[hero.id] = hero;
-        });
-        this.num_ids = maxHeroId + 1;
+        let filename = "./basicHeroes.json";
+        if (existsSync(filename)) {
+            let buffer = readFileSync(filename, 'utf8');
+            let heroList: Hero[] = JSON.parse(buffer);
+            let maxHeroId = 0;
+            this.heroes = {};
+            heroList.forEach(hero => {
+                if (hero.id > maxHeroId) {
+                    maxHeroId = hero.id;
+                }
+                this.heroes[hero.id] = hero;
+            });
+            this.num_ids = maxHeroId + 1;
+        }
     }
 
     getPackage(day: Day) : DataPackage {
