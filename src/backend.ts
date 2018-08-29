@@ -20,4 +20,4 @@ let refiner = new Refiner(database);
 
 startPeriodicTask("retrieve heroes", parser.requestHeroes.bind(parser), 12 * 3600, 0);
 startPeriodicTask("refine data", refiner.refine.bind(refiner), 3600, 10);
-startPeriodicTask("retrieve matches", parser.requestMatches.bind(parser), 10, 15);
+startPeriodicTask("retrieve matches", parser.requestMatches.bind(parser), 8.5, 15);
