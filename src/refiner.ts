@@ -19,7 +19,7 @@ export class Refiner {
             let refinedHero = new RefinedHero(this.database);
             refinedHero.id = hero.id;
             refinedHero.name = hero.name;
-            refinedHero.internalName = hero.name.toLowerCase().split(" ").join("_");
+            refinedHero.internalName = hero.name.toLowerCase().split(" ").join("_").replace("'","");
             refinedHero.attribute = hero.attribute;
             refinedHero.rankedWinRates = hero.rankedWinRates;
             refinedHero.rankedPickRates = hero.rankedPickRates;
