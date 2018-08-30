@@ -27,44 +27,28 @@ export class Refiner {
         }
 
         let meanLifetimeDays = 10;
-        let factors: {[heroName: string]: number[]} = {};
+        let factors: number[] = [];
+        let sumOfFactors = 0;
         let dataPackages = DataPackage.loadAll(this.database.heroes);
-        for (let heroId in this.database.heroes) {
-            let heroName = this.database.heroes[heroId].name;
-            factors[heroName] = [];
-        }
         for (let i = 0; i < dataPackages.length; ++i) {
             let dataPackage = dataPackages[i];
             let daysPast = dataPackage.day.daysPast();
             let factor = Math.exp(-daysPast / meanLifetimeDays);
-
-            for (let heroName in dataPackage.data) {
-                let heroData = dataPackage.data[heroName];
-                let gamesPlayed = heroData.totalGamesPlayed;
-                let heroFactor = factor * gamesPlayed;
-                factors[heroName][i] = heroFactor;
-            }
+            factors[i] = factor;
+            sumOfFactors += factor;
         }
-        for (let heroId in this.database.heroes) {
-            let heroName = this.database.heroes[heroId].name;
-            let sumOfFactors = 0;
-            for (let i = 0; i < factors[heroName].length; ++i) {
-                let factor = factors[heroName][i] || 0;
-                sumOfFactors += factor;
-            }
-            for (let i = 0; i < factors[heroName].length; ++i) {
-                factors[heroName][i] /= sumOfFactors;
-            }
+        for (let i = 0; i < dataPackages.length; ++i) {
+            factors[i] /= sumOfFactors;
         }
 
 
         for (let i = 0; i < dataPackages.length; ++i) {
             let dataPackage = dataPackages[i];
+            let weightFactor = factors[i];
             for (let heroName in dataPackage.data) {
                 let heroData = dataPackage.data[heroName];
                 let refinedHero = refinedHeroes[heroName];
                 let totalWinRate = heroData.totalGamesWon / heroData.totalGamesPlayed;
-                let weightFactor = factors[heroName][i];
 
                 // farm priority
                 for (let priority = 0; priority < 5; ++priority) {
@@ -73,11 +57,7 @@ export class Refiner {
                         let measuredWinRate = heroData.gamesWonAsFarmPriority[priority] / nSamples;
                         let priorityWinRate = Stochastics.split(measuredWinRate, totalWinRate);
                         refinedHero.farmPrioritySamples[priority] += weightFactor * nSamples;
-                        refinedHero.farmPriorityWinRates[priority] += weightFactor * priorityWinRate;
-                    }
-                    else {
-                        refinedHero.farmPrioritySamples[priority] = 0;
-                        refinedHero.farmPriorityWinRates[priority] = 0;
+                        refinedHero.farmPriorityWinRates[priority] += weightFactor * nSamples * priorityWinRate;
                     }
                 }
 
@@ -88,11 +68,7 @@ export class Refiner {
                         let measuredWinRate = heroData.gamesWonAsXPPriority[priority] / nSamples;
                         let priorityWinRate = Stochastics.split(measuredWinRate, totalWinRate);
                         refinedHero.xpPrioritySamples[priority] += weightFactor * nSamples;
-                        refinedHero.xpPriorityWinRates[priority] += weightFactor * priorityWinRate;
-                    }
-                    else {
-                        refinedHero.xpPrioritySamples[priority] = 0;
-                        refinedHero.xpPriorityWinRates[priority] = 0;
+                        refinedHero.xpPriorityWinRates[priority] += weightFactor * nSamples * priorityWinRate;
                     }
                 }
 
@@ -107,11 +83,7 @@ export class Refiner {
                         let measuredWinRate = heroData.gamesWonWith[allyHero.name] / nSamples;
                         let synergyWinRate = Stochastics.split(measuredWinRate, expectedWinRate);
                         refinedHero.synergySamples[allyHero.id] += weightFactor * nSamples;
-                        refinedHero.synergyWinRates[allyHero.id] += weightFactor * synergyWinRate;
-                    }
-                    else {
-                        refinedHero.synergySamples[allyHero.id] = 0;
-                        refinedHero.synergyWinRates[allyHero.id] = 0;
+                        refinedHero.synergyWinRates[allyHero.id] += weightFactor * nSamples * synergyWinRate;
                     }
                 }
 
@@ -126,15 +98,25 @@ export class Refiner {
                         let measuredWinRate = heroData.gamesWonAgainst[enemyHero.name] / nSamples;
                         let matchupWinRate = Stochastics.split(measuredWinRate, expectedWinRate);
                         refinedHero.matchUpSamples[enemyHero.id] += weightFactor * nSamples;
-                        refinedHero.matchUpWinRates[enemyHero.id] += weightFactor * matchupWinRate;
-                    }
-                    else {
-                        refinedHero.matchUpSamples[enemyHero.id] = 0;
-                        refinedHero.matchUpWinRates[enemyHero.id] = 0;
+                        refinedHero.matchUpWinRates[enemyHero.id] += weightFactor * nSamples * matchupWinRate;
                     }
                 }
             }
-        };
+        }
+
+        for (let heroName in refinedHeroes) {   
+            let hero = refinedHeroes[heroName];
+            for (let priority = 0; priority < 5; ++priority) {
+                hero.farmPriorityWinRates[priority] /= hero.farmPrioritySamples[priority];
+                hero.xpPriorityWinRates[priority] /= hero.xpPrioritySamples[priority];
+            }
+            for (let otherHeroName in refinedHeroes) {
+                let otherHero = refinedHeroes[otherHeroName];
+                hero.synergyWinRates[otherHero.id] /= hero.synergySamples[otherHero.id];
+                hero.matchUpWinRates[otherHero.id] /= hero.matchUpSamples[otherHero.id];
+            }
+        }
+
         
         let directory = "refined";
         if (!existsSync(directory)) {
