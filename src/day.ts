@@ -16,7 +16,7 @@ export class Day {
     }
 
     name(): string {
-        return this.date.getUTCFullYear() + "-" + (this.date.getUTCMonth() + 1) + "-" + (this.date.getUTCDate() + 1);
+        return this.date.getUTCFullYear() + "-" + (this.date.getUTCMonth() + 1) + "-" + this.date.getUTCDate();
     }
 
     daysPast(): number {
