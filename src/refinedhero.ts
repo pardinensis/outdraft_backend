@@ -18,6 +18,9 @@ export class RefinedHero {
     matchUpSamples: number[];
     matchUpWinRates: number[];
 
+    synergySpecifity: number;
+    matchUpSpecifity: number;
+
     constructor(database: Database) {
         this.id = 0;
         this.name = "";
@@ -42,5 +45,8 @@ export class RefinedHero {
             this.matchUpSamples[id] = 0;
             this.matchUpWinRates[id] = 0;
         }
+
+        this.synergySpecifity = 0;
+        this.matchUpSpecifity = 0;
     }
 }

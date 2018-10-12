@@ -76,7 +76,7 @@ export class Refiner {
                 for (let allyHeroId in this.database.heroes) {
                     let allyHero = this.database.heroes[allyHeroId];
                     let nSamples = heroData.gamesPlayedWith[allyHero.name];
-                    if (nSamples > 50) {
+                    if (nSamples > 5) {
                         let allyHeroPackage = dataPackage.data[allyHero.name];
                         let allyWinRate = allyHeroPackage.totalGamesWon / allyHeroPackage.totalGamesPlayed;
                         let expectedWinRate = Stochastics.combine(totalWinRate, allyWinRate);
@@ -85,13 +85,16 @@ export class Refiner {
                         refinedHero.synergySamples[allyHero.id] += weightFactor * nSamples;
                         refinedHero.synergyWinRates[allyHero.id] += weightFactor * nSamples * synergyWinRate;
                     }
+                    else if (nSamples > 0) {
+                        console.log(nSamples + ": " + heroName + " + " + allyHero.name + " on " + dataPackage.day.name());
+                    }
                 }
 
                 // matchup
                 for (let enemyHeroId in this.database.heroes) {
                     let enemyHero = this.database.heroes[enemyHeroId];
                     let nSamples = heroData.gamesPlayedAgainst[enemyHero.name];
-                    if (nSamples > 50) {
+                    if (nSamples > 5) {
                         let enemyHeroPackage = dataPackage.data[enemyHero.name];
                         let enemyWinRate = enemyHeroPackage.totalGamesWon / enemyHeroPackage.totalGamesPlayed;
                         let expectedWinRate = Stochastics.combine(totalWinRate, 1 - enemyWinRate);
@@ -117,6 +120,25 @@ export class Refiner {
                     hero.matchUpWinRates[otherHero.id] /= hero.matchUpSamples[otherHero.id];
                 }
             }
+        }
+
+        for (let heroName in refinedHeroes) {
+            let hero = refinedHeroes[heroName];
+            let matchUpSum = 0;
+            let matchUpNormalization = 0;
+            let synergySum = 0;
+            let synergyNormalization = 0;
+            for (let otherHeroName in refinedHeroes) {
+                let otherHero = refinedHeroes[otherHeroName];
+                if (otherHero.id !== hero.id) {
+                    matchUpSum += Math.abs(hero.matchUpWinRates[otherHero.id] - 0.5) * hero.matchUpSamples[otherHero.id];
+                    matchUpNormalization += hero.matchUpSamples[otherHero.id];
+                    synergySum += Math.abs(hero.synergyWinRates[otherHero.id] - 0.5) * hero.synergySamples[otherHero.id];
+                    synergyNormalization += hero.synergySamples[otherHero.id];
+                }
+            }
+            hero.matchUpSpecifity = matchUpSum / matchUpNormalization;
+            hero.synergySpecifity = synergySum / synergyNormalization;
         }
 
         
