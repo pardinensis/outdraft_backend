@@ -85,9 +85,6 @@ export class Refiner {
                         refinedHero.synergySamples[allyHero.id] += weightFactor * nSamples;
                         refinedHero.synergyWinRates[allyHero.id] += weightFactor * nSamples * synergyWinRate;
                     }
-                    else if (nSamples > 0) {
-                        console.log(nSamples + ": " + heroName + " + " + allyHero.name + " on " + dataPackage.day.name());
-                    }
                 }
 
                 // matchup
